@@ -31,7 +31,7 @@ function LoadingScreen() {
 }
 
 export default function RootLayout() {
-  const [fontsLoaded] = useFonts({
+  const [fontsLoaded, fontError] = useFonts({
     "sans-regular": require("../assets/fonts/PlusJakartaSans-Regular.ttf"),
     "sans-light": require("../assets/fonts/PlusJakartaSans-Light.ttf"),
     "sans-medium": require("../assets/fonts/PlusJakartaSans-Medium.ttf"),
@@ -45,6 +45,10 @@ export default function RootLayout() {
       SplashScreen.hideAsync();
     }
   }, [fontsLoaded]);
+
+  if (fontError) {
+    throw fontError;
+  }
 
   if (!fontsLoaded) return null;
 

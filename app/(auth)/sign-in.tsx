@@ -45,12 +45,18 @@ export default function SignIn() {
 
   const finalizeSignIn = async () => {
     await signIn.finalize({
-      navigate: ({ session }) => {
+      navigate: ({ session, decorateUrl }) => {
         if (session?.currentTask) {
           console.log(session.currentTask);
           return;
         }
-        router.replace("/(tabs)" as Href);
+
+        const url = decorateUrl("/(tabs)");
+        if (url.startsWith("http")) {
+          window.location.href = url;
+        } else {
+          router.replace(url as Href);
+        }
       },
     });
   };
