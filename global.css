@@ -267,7 +267,7 @@
   }
 
   .auth-title {
-    @apply text-3xl font-sans-bold text-primary;
+    @apply text-center text-3xl font-sans-bold text-primary;
   }
 
   .auth-subtitle {
@@ -291,7 +291,7 @@
   }
 
   .auth-input {
-    @apply rounded-2xl border border-border bg-background px-4 py-4 text-base font-sans-medium text-primary;
+    @apply rounded-2xl border border-border bg-muted px-4 py-4 text-base font-sans-medium text-primary;
   }
 
   .auth-input-error {
@@ -315,7 +315,7 @@
   }
 
   .auth-button-text {
-    @apply text-base font-sans-bold text-primary;
+    @apply text-base font-sans-bold text-white;
   }
 
   .auth-secondary-button {
@@ -343,7 +343,7 @@
   }
 
   .auth-link-copy {
-    @apply text-sm font-sans-medium text-muted-foreground;
+    @apply text-sm font-sans-medium text-primary;
   }
 
   .auth-link {
