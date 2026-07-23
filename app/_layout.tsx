@@ -1,11 +1,17 @@
 import "@/global.css";
-import { ClerkLoaded, ClerkLoading, ClerkProvider } from "@clerk/expo";
+import { ClerkLoaded, ClerkLoading, ClerkProvider, useAuth, useUser } from "@clerk/expo";
 import { tokenCache } from "@clerk/expo/token-cache";
 import { colors } from "@/constants/theme";
 import { useFonts } from "expo-font";
-import { SplashScreen, Stack } from "expo-router";
-import { useEffect } from "react";
+import { SplashScreen, Stack, useGlobalSearchParams, usePathname } from "expo-router";
+import { useEffect, useRef } from "react";
 import { ActivityIndicator, View } from "react-native";
+import {
+  PostHogErrorBoundary,
+  PostHogProvider,
+  usePostHog,
+} from "posthog-react-native";
+import { posthog } from "@/lib/posthog";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -27,6 +33,79 @@ function LoadingScreen() {
     >
       <ActivityIndicator size="large" color={colors.accent} />
     </View>
+  );
+}
+
+function PostHogIdentity() {
+  const { isLoaded, isSignedIn } = useAuth();
+  const { user } = useUser();
+  const identifiedUserId = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!isLoaded) return;
+
+    if (isSignedIn && user && identifiedUserId.current !== user.id) {
+      if (identifiedUserId.current) {
+        posthog?.reset();
+      }
+
+      posthog?.identify(user.id, {
+        ...(user.primaryEmailAddress?.emailAddress
+          ? { email: user.primaryEmailAddress.emailAddress }
+          : {}),
+        ...(user.fullName ? { name: user.fullName } : {}),
+      });
+      identifiedUserId.current = user.id;
+    } else if (!isSignedIn && identifiedUserId.current) {
+      posthog?.reset();
+      identifiedUserId.current = null;
+    }
+  }, [isLoaded, isSignedIn, user]);
+
+  return null;
+}
+
+function PostHogScreenTracker() {
+  const pathname = usePathname();
+  const params = useGlobalSearchParams();
+  const posthogClient = usePostHog();
+  const previousPathname = useRef<string | undefined>(undefined);
+
+  useEffect(() => {
+    if (!pathname || previousPathname.current === pathname) return;
+
+    posthogClient.screen(pathname, {
+      previous_screen: previousPathname.current ?? null,
+      ...params,
+    });
+    previousPathname.current = pathname;
+  }, [pathname, params, posthogClient]);
+
+  return null;
+}
+
+function AppContent() {
+  return (
+    <>
+      <PostHogIdentity />
+      <PostHogScreenTracker />
+      <PostHogErrorBoundary
+        fallback={
+          <View
+            style={{
+              flex: 1,
+              alignItems: "center",
+              justifyContent: "center",
+              backgroundColor: colors.background,
+            }}
+          >
+            <ActivityIndicator size="large" color={colors.accent} />
+          </View>
+        }
+      >
+        <Stack screenOptions={{ headerShown: false }} />
+      </PostHogErrorBoundary>
+    </>
   );
 }
 
@@ -58,7 +137,18 @@ export default function RootLayout() {
         <LoadingScreen />
       </ClerkLoading>
       <ClerkLoaded>
-        <Stack screenOptions={{ headerShown: false }} />
+        {posthog ? (
+          <PostHogProvider
+            client={posthog}
+            autocapture={{
+              captureScreens: false,
+            }}
+          >
+            <AppContent />
+          </PostHogProvider>
+        ) : (
+          <Stack screenOptions={{ headerShown: false }} />
+        )}
       </ClerkLoaded>
     </ClerkProvider>
   );

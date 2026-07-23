@@ -3,6 +3,7 @@ import { colors, components } from "@/constants/theme";
 import { useAuth } from "@clerk/expo";
 import clsx from "clsx";
 import { Redirect, Tabs } from "expo-router";
+import { usePostHog } from "posthog-react-native";
 import React from "react";
 import { ActivityIndicator, Image, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -11,6 +12,7 @@ const tabBar = components.tabBar;
 
 const TabLayout = () => {
   const { isSignedIn, isLoaded } = useAuth();
+  const posthog = usePostHog();
   const insets = useSafeAreaInsets();
 
   if (!isLoaded) {
@@ -72,6 +74,11 @@ const TabLayout = () => {
         <Tabs.Screen
           key={tab.name}
           name={tab.name}
+          listeners={{
+            tabPress: () => {
+              posthog.capture("tab_selected", { tab_name: tab.name });
+            },
+          }}
           options={{
             title: tab.title,
             tabBarIcon: ({ focused }) => (

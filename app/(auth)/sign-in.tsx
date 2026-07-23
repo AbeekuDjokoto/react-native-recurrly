@@ -3,6 +3,7 @@ import { colors } from "@/constants/theme";
 import { useSignIn } from "@clerk/expo";
 import { type Href, Link, useRouter } from "expo-router";
 import { styled } from "nativewind";
+import { usePostHog } from "posthog-react-native";
 import React from "react";
 import {
   ActivityIndicator,
@@ -20,13 +21,17 @@ const SafeAreaView = styled(RNSafeAreaView);
 
 export default function SignIn() {
   const { signIn, errors, fetchStatus } = useSignIn();
+  const posthog = usePostHog();
   const router = useRouter();
 
   const [emailAddress, setEmailAddress] = React.useState("");
   const [password, setPassword] = React.useState("");
   const [code, setCode] = React.useState("");
+  const [formError, setFormError] = React.useState<string | null>(null);
 
   const isFetching = fetchStatus === "fetching";
+  const passwordError =
+    formError ?? errors?.fields?.password?.message ?? null;
 
   if (!signIn) {
     return (
@@ -51,6 +56,8 @@ export default function SignIn() {
           return;
         }
 
+        posthog.capture("sign_in_completed");
+
         const url = decorateUrl("/(tabs)");
         if (url.startsWith("http")) {
           window.location.href = url;
@@ -62,13 +69,20 @@ export default function SignIn() {
   };
 
   const handleSubmit = async () => {
+    setFormError(null);
+    posthog.capture("sign_in_attempt_submitted");
+
     const { error } = await signIn.password({
       emailAddress,
       password,
     });
 
     if (error) {
-      console.error(JSON.stringify(error, null, 2));
+      const message =
+        error.errors?.[0]?.longMessage ||
+        error.errors?.[0]?.message ||
+        "Unable to sign in. Please try again.";
+      setFormError(message);
       return;
     }
 
@@ -93,6 +107,7 @@ export default function SignIn() {
     await signIn.mfa.verifyEmailCode({ code });
 
     if (signIn.status === "complete") {
+      posthog.capture("sign_in_verification_completed");
       await finalizeSignIn();
     } else {
       console.error("Sign-in attempt not complete:", signIn);
@@ -148,12 +163,21 @@ export default function SignIn() {
 
                 <Pressable
                   className="auth-secondary-button"
-                  onPress={() => signIn.mfa.sendEmailCode()}
+                  onPress={() => {
+                    posthog.capture("sign_in_verification_code_resent");
+                    signIn.mfa.sendEmailCode();
+                  }}
                 >
                   <Text className="auth-secondary-button-text">I need a new code</Text>
                 </Pressable>
 
-                <Pressable className="auth-secondary-button" onPress={() => signIn.reset()}>
+                <Pressable
+                  className="auth-secondary-button"
+                  onPress={() => {
+                    posthog.capture("sign_in_restart_selected");
+                    signIn.reset();
+                  }}
+                >
                   <Text className="auth-secondary-button-text">Start over</Text>
                 </Pressable>
               </View>
@@ -190,7 +214,10 @@ export default function SignIn() {
                   value={emailAddress}
                   placeholder="Enter your email"
                   placeholderTextColor={colors.mutedForeground}
-                  onChangeText={setEmailAddress}
+                  onChangeText={(value) => {
+                    setFormError(null);
+                    setEmailAddress(value);
+                  }}
                   keyboardType="email-address"
                   autoComplete="email"
                   textContentType="emailAddress"
@@ -208,12 +235,15 @@ export default function SignIn() {
                   placeholder="Enter your password"
                   placeholderTextColor={colors.mutedForeground}
                   secureTextEntry
-                  onChangeText={setPassword}
+                  onChangeText={(value) => {
+                    setFormError(null);
+                    setPassword(value);
+                  }}
                   autoComplete="password"
                   textContentType="password"
                 />
-                {errors?.fields?.password && (
-                  <Text className="auth-error">{errors.fields.password.message}</Text>
+                {passwordError && (
+                  <Text className="auth-error">{passwordError}</Text>
                 )}
               </View>
 

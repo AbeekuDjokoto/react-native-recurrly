@@ -8,6 +8,7 @@ import images from "@/constants/images";
 import { formatCurrency, formatSubscriptionDateTime } from "@/lib/utils";
 import { useUser } from "@clerk/expo";
 import { styled } from "nativewind";
+import { usePostHog } from "posthog-react-native";
 
 import ListHeading from "@/components/ListHeading";
 import SubscriptionCard from "@/components/SubscriptionCard";
@@ -19,6 +20,7 @@ const SafeAreaView = styled(RNSafeAreaView);
 
 export default function App() {
   const { user } = useUser();
+  const posthog = usePostHog();
   const [expandedSubscriptionId, setExpandedSubscriptionId] = useState<
     string | null
   >(null);
@@ -86,11 +88,18 @@ export default function App() {
           <SubscriptionCard
             {...item}
             expanded={expandedSubscriptionId === item.id}
-            onPress={() =>
-              setExpandedSubscriptionId((currentId) =>
-                currentId === item.id ? null : item.id,
-              )
-            }
+            onPress={() => {
+              const isExpanding = expandedSubscriptionId !== item.id;
+              posthog.capture("subscription_details_toggled", {
+                subscription_id: item.id,
+                ...(item.category
+                  ? { subscription_category: item.category }
+                  : {}),
+                ...(item.status ? { subscription_status: item.status } : {}),
+                state: isExpanding ? "expanded" : "collapsed",
+              });
+              setExpandedSubscriptionId(isExpanding ? item.id : null);
+            }}
           />
         )}
         showsVerticalScrollIndicator={false}
