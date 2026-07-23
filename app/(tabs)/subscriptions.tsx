@@ -25,7 +25,8 @@ const Subscriptions = () => {
   const router = useRouter();
   const posthog = usePostHog();
   const insets = useSafeAreaInsets();
-  const { subscriptions } = useSubscriptions();
+  const { subscriptions, cancelSubscription, isCancellingSubscription } =
+    useSubscriptions();
   const [query, setQuery] = useState("");
   const [keyboardHeight, setKeyboardHeight] = useState(0);
   const [expandedSubscriptionId, setExpandedSubscriptionId] = useState<
@@ -139,7 +140,7 @@ const Subscriptions = () => {
             keyboardShouldPersistTaps="handled"
             keyboardDismissMode="on-drag"
             contentContainerStyle={{ paddingBottom: listBottomPadding }}
-            extraData={expandedSubscriptionId}
+            extraData={{ expandedSubscriptionId, subscriptions }}
             ItemSeparatorComponent={() => <View className="h-3" />}
             ListEmptyComponent={
               <Text className="home-empty-state">
@@ -152,9 +153,10 @@ const Subscriptions = () => {
               <SubscriptionCard
                 {...item}
                 expanded={expandedSubscriptionId === item.id}
+                isCancelling={isCancellingSubscription(item.id)}
                 onPress={() => {
                   const isExpanding = expandedSubscriptionId !== item.id;
-                  posthog.capture("subscription_details_toggled", {
+                  posthog?.capture("subscription_details_toggled", {
                     subscription_id: item.id,
                     ...(item.category
                       ? { subscription_category: item.category }
@@ -168,12 +170,13 @@ const Subscriptions = () => {
                   setExpandedSubscriptionId(isExpanding ? item.id : null);
                 }}
                 onCancelPress={() => {
-                  posthog.capture("subscription_cancel_tapped", {
+                  posthog?.capture("subscription_cancel_tapped", {
                     subscription_id: item.id,
                     ...(item.status
                       ? { subscription_status: item.status }
                       : {}),
                   });
+                  cancelSubscription(item.id);
                 }}
               />
             )}

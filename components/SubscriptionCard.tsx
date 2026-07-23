@@ -135,7 +135,8 @@ const SubscriptionCard = ({
             <Pressable
               className={clsx(
                 "sub-cancel",
-                isCancelling && "sub-cancel-disabled",
+                (isCancelling || status === "cancelled") &&
+                  "sub-cancel-disabled",
               )}
               disabled={isCancelling || status === "cancelled"}
               onPress={(event) => {

@@ -78,7 +78,7 @@ const TabLayout = () => {
             name={tab.name}
             listeners={{
               tabPress: () => {
-                posthog.capture("tab_selected", { tab_name: tab.name });
+                posthog?.capture("tab_selected", { tab_name: tab.name });
               },
             }}
             options={{

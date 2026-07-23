@@ -23,7 +23,7 @@ const Settings = () => {
         <Pressable
           className="items-center rounded-2xl border border-destructive/20 bg-destructive/10 py-4"
           onPress={() => {
-            posthog.capture("user_logged_out");
+            posthog?.capture("user_logged_out");
             signOut();
           }}
         >

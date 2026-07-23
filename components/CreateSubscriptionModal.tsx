@@ -1,9 +1,11 @@
 import { icons } from "@/constants/icons";
 import { colors } from "@/constants/theme";
 import { getBrandLogoSource } from "@/lib/logos";
+import { posthog } from "@/lib/posthog";
 import clsx from "clsx";
 import dayjs from "dayjs";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import type { ImageSourcePropType } from "react-native";
 import {
   Image,
   KeyboardAvoidingView,
@@ -57,6 +59,22 @@ const CreateSubscriptionModal = ({
   const [price, setPrice] = useState("");
   const [frequency, setFrequency] = useState<Frequency>("Monthly");
   const [category, setCategory] = useState<Category>("Entertainment");
+  const [previewLogo, setPreviewLogo] =
+    useState<ImageSourcePropType>(icons.wallet);
+
+  useEffect(() => {
+    const trimmed = name.trim();
+    if (!trimmed) {
+      setPreviewLogo(icons.wallet);
+      return;
+    }
+
+    const timeoutId = setTimeout(() => {
+      setPreviewLogo(getBrandLogoSource(trimmed));
+    }, 400);
+
+    return () => clearTimeout(timeoutId);
+  }, [name]);
 
   const parsedPrice = Number.parseFloat(price);
   const isValid =
@@ -67,6 +85,7 @@ const CreateSubscriptionModal = ({
     setPrice("");
     setFrequency("Monthly");
     setCategory("Entertainment");
+    setPreviewLogo(icons.wallet);
   };
 
   const handleClose = () => {
@@ -99,6 +118,13 @@ const CreateSubscriptionModal = ({
     };
 
     onCreate(subscription);
+
+    posthog?.capture("subscription_created", {
+      subscription: trimmedName,
+      price: parsedPrice,
+      frequency,
+      category,
+    });
     resetForm();
     onClose();
   };
@@ -132,11 +158,7 @@ const CreateSubscriptionModal = ({
                 <Text className="auth-label">Name</Text>
                 <View className="flex-row items-center gap-3">
                   <Image
-                    source={
-                      name.trim()
-                        ? getBrandLogoSource(name)
-                        : icons.wallet
-                    }
+                    source={previewLogo}
                     className="size-14 rounded-2xl bg-muted"
                     resizeMode="contain"
                   />

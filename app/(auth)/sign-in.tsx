@@ -56,7 +56,7 @@ export default function SignIn() {
           return;
         }
 
-        posthog.capture("sign_in_completed");
+        posthog?.capture("sign_in_completed");
 
         const url = decorateUrl("/(tabs)");
         if (url.startsWith("http")) {
@@ -70,7 +70,7 @@ export default function SignIn() {
 
   const handleSubmit = async () => {
     setFormError(null);
-    posthog.capture("sign_in_attempt_submitted");
+    posthog?.capture("sign_in_attempt_submitted");
 
     const { error } = await signIn.password({
       emailAddress,
@@ -107,7 +107,7 @@ export default function SignIn() {
     await signIn.mfa.verifyEmailCode({ code });
 
     if (signIn.status === "complete") {
-      posthog.capture("sign_in_verification_completed");
+      posthog?.capture("sign_in_verification_completed");
       await finalizeSignIn();
     } else {
       console.error("Sign-in attempt not complete:", signIn);
@@ -164,7 +164,7 @@ export default function SignIn() {
                 <Pressable
                   className="auth-secondary-button"
                   onPress={() => {
-                    posthog.capture("sign_in_verification_code_resent");
+                    posthog?.capture("sign_in_verification_code_resent");
                     signIn.mfa.sendEmailCode();
                   }}
                 >
@@ -174,7 +174,7 @@ export default function SignIn() {
                 <Pressable
                   className="auth-secondary-button"
                   onPress={() => {
-                    posthog.capture("sign_in_restart_selected");
+                    posthog?.capture("sign_in_restart_selected");
                     signIn.reset();
                   }}
                 >

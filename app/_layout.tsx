@@ -3,7 +3,7 @@ import { ClerkLoaded, ClerkLoading, ClerkProvider, useAuth, useUser } from "@cle
 import { tokenCache } from "@clerk/expo/token-cache";
 import { colors } from "@/constants/theme";
 import { useFonts } from "expo-font";
-import { SplashScreen, Stack, useGlobalSearchParams, usePathname } from "expo-router";
+import { SplashScreen, Stack, usePathname } from "expo-router";
 import { useEffect, useRef } from "react";
 import { ActivityIndicator, View } from "react-native";
 import {
@@ -67,19 +67,17 @@ function PostHogIdentity() {
 
 function PostHogScreenTracker() {
   const pathname = usePathname();
-  const params = useGlobalSearchParams();
   const posthogClient = usePostHog();
   const previousPathname = useRef<string | undefined>(undefined);
 
   useEffect(() => {
     if (!pathname || previousPathname.current === pathname) return;
 
-    posthogClient.screen(pathname, {
+    posthogClient?.screen(pathname, {
       previous_screen: previousPathname.current ?? null,
-      ...params,
     });
     previousPathname.current = pathname;
-  }, [pathname, params, posthogClient]);
+  }, [pathname, posthogClient]);
 
   return null;
 }

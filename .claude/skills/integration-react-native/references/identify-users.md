@@ -10,7 +10,7 @@ To link events to specific users, call `identify`:
 
 PostHog AI
 
-### Web
+## Web
 
 ```javascript
 posthog.identify(
@@ -19,7 +19,7 @@ posthog.identify(
 );
 ```
 
-### Android
+## Android
 
 ```kotlin
 PostHog.identify(
@@ -32,14 +32,14 @@ PostHog.identify(
 )
 ```
 
-### iOS
+## iOS
 
 ```swift
 PostHogSDK.shared.identify("distinct_id", // Replace "distinct_id" with your user's unique identifier
                            userProperties: ["name": "Max Hedgehog", "email": "max@hedgehogmail.com"]) // optional: set additional person properties
 ```
 
-### React Native
+## React Native
 
 ```jsx
 posthog.identify('distinct_id', { // Replace "distinct_id" with your user's unique identifier
@@ -48,7 +48,7 @@ posthog.identify('distinct_id', { // Replace "distinct_id" with your user's uniq
 })
 ```
 
-### Dart
+## Dart
 
 ```dart
 await Posthog().identify(
@@ -68,7 +68,7 @@ Due to the cost of processing them, anonymous events can be up to 4x cheaper tha
 
 When a user starts browsing your website or app, PostHog automatically assigns them an **anonymous ID**, which is stored locally.
 
-Provided you've [configured persistence](/docs/libraries/js/persistence.md) to use cookies or `localStorage`, this enables us to track anonymous users – even across different sessions.
+Provided you've configured persistence — [cookies or `localStorage` on web](/docs/libraries/js/persistence.md), and AsyncStorage (the React Native SDK default) on mobile — this enables us to track anonymous users – even across different sessions.
 
 By calling `identify` with a `distinct_id` of your choice (usually the user's ID in your database, or their email), you link the anonymous ID and distinct ID together.
 
@@ -163,13 +163,13 @@ This enables you to set [person properties](/docs/product-analytics/person-prope
 
 Whenever possible, we recommend passing in all person properties you have available each time you call identify, as this ensures their person profile on PostHog is up to date.
 
-Person properties can also be set being adding a `$set` property to a event `capture` call.
+Person properties can also be set by adding a `$set` property to an event capture call.
 
 See our [person properties docs](/docs/product-analytics/person-properties.md) for more details on how to work with them and best practices.
 
 ### 5\. Use deep links between platforms
 
-We recommend you call `identify` [as soon as you're able](#1-call-identify-as-soon-as-youre-able), typically when a user signs up or logs in.
+We recommend you call `identify` [as soon as you're able](#1-call-identify-as-soon-as-youre-able-to), typically when a user signs up or logs in.
 
 This doesn't work if one or both platforms are unauthenticated. Some examples of such cases are:
 
@@ -192,7 +192,7 @@ Here's an example implementation for handling deep links from web to mobile:
 
 PostHog AI
 
-### iOS
+#### Deep link handling on iOS
 
 ```swift
 import PostHog
@@ -226,7 +226,7 @@ class DeepLinkIdentityManager {
 }
 ```
 
-### Android
+#### Deep link handling on Android
 
 ```kotlin
 import android.net.Uri

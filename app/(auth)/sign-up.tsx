@@ -47,7 +47,7 @@ export default function SignUp() {
   }
 
   const handleSubmit = async () => {
-    posthog.capture("sign_up_started");
+    posthog?.capture("sign_up_started");
 
     const { error } = await signUp.password({
       emailAddress,
@@ -66,7 +66,7 @@ export default function SignUp() {
     await signUp.verifications.verifyEmailCode({ code });
 
     if (signUp.status === "complete") {
-      posthog.capture("sign_up_completed");
+      posthog?.capture("sign_up_completed");
 
       await signUp.finalize({
         navigate: ({ session }) => {
@@ -141,7 +141,7 @@ export default function SignUp() {
                 <Pressable
                   className="auth-secondary-button"
                   onPress={() => {
-                    posthog.capture("sign_up_verification_code_resent");
+                    posthog?.capture("sign_up_verification_code_resent");
                     signUp.verifications.sendEmailCode();
                   }}
                 >
