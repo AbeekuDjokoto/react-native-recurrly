@@ -226,6 +226,26 @@
     @apply py-4 text-sm font-sans-medium text-black/60;
   }
 
+  .subscriptions-header {
+    @apply mb-5 flex-row items-center justify-between;
+  }
+
+  .subscriptions-header-btn {
+    @apply size-11 items-center justify-center rounded-full border border-border bg-card;
+  }
+
+  .subscriptions-header-icon {
+    @apply size-5;
+  }
+
+  .subscriptions-title {
+    @apply text-xl font-sans-bold text-primary;
+  }
+
+  .subscriptions-search {
+    @apply mb-5 rounded-2xl border border-border bg-muted px-4 py-4 text-base font-sans-medium text-primary;
+  }
+
   .auth-safe-area {
     @apply flex-1 bg-background;
   }
