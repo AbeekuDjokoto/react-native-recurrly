@@ -3,6 +3,7 @@ import { colors } from "@/constants/theme";
 import { useAuth, useSignUp } from "@clerk/expo";
 import { type Href, Link, useRouter } from "expo-router";
 import { styled } from "nativewind";
+import { usePostHog } from "posthog-react-native";
 import React from "react";
 import {
   ActivityIndicator,
@@ -21,6 +22,7 @@ const SafeAreaView = styled(RNSafeAreaView);
 export default function SignUp() {
   const { signUp, errors, fetchStatus } = useSignUp();
   const { isSignedIn } = useAuth();
+  const posthog = usePostHog();
   const router = useRouter();
 
   const [emailAddress, setEmailAddress] = React.useState("");
@@ -45,6 +47,8 @@ export default function SignUp() {
   }
 
   const handleSubmit = async () => {
+    posthog?.capture("sign_up_started");
+
     const { error } = await signUp.password({
       emailAddress,
       password,
@@ -62,6 +66,8 @@ export default function SignUp() {
     await signUp.verifications.verifyEmailCode({ code });
 
     if (signUp.status === "complete") {
+      posthog?.capture("sign_up_completed");
+
       await signUp.finalize({
         navigate: ({ session }) => {
           if (session?.currentTask) {
@@ -134,7 +140,10 @@ export default function SignUp() {
 
                 <Pressable
                   className="auth-secondary-button"
-                  onPress={() => signUp.verifications.sendEmailCode()}
+                  onPress={() => {
+                    posthog?.capture("sign_up_verification_code_resent");
+                    signUp.verifications.sendEmailCode();
+                  }}
                 >
                   <Text className="auth-secondary-button-text">I need a new code</Text>
                 </Pressable>
